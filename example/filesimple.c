@@ -12,6 +12,25 @@ static const char *JSON_STRING =
 	"{\"user\": \"johndoe\", \"admin\": false, \"uid\": 1000,\n  "
 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
+char *readJSONFile() {
+	FILE *fp = fopen("data.json", "r");
+	char *JSON_STRING;
+	JSON_STRING = malloc(sizeof(char)*50);
+	char line[255];
+	int count = 0;
+
+	while(1) {
+			fgets(line, sizeof(line), fp);
+			if(feof(fp)) break;
+			count += strlen(line );
+			JSON_STRING = realloc(JSON_STRING, count+1);
+			strcat(JSON_STRING, line);
+	}
+
+	fclose(fp);
+	return JSON_STRING;
+}
+
 static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
 			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
@@ -23,6 +42,12 @@ static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
 int main() {
 	int i;
 	int r;
+	char *JSMN_STR;
+	JSMN_STR = readJSONFile();
+	printf("%s", JSMN_STR);
+
+	return 0;
+
 	jsmn_parser p;
 	jsmntok_t t[128]; /* We expect no more than 128 tokens */
 
