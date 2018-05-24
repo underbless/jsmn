@@ -32,14 +32,14 @@ char *readJSONFile() {
 }
 
 void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex) {
-	printf("******* Name List *******\n");
+	//printf("******* Name List *******\n");
 	int count = 1;
 	int i;
 
 	for(i = 1; i < tokcount; i++) {
 		if(t[i].size >= 1){
 			nametokIndex[count] = i;
-			printf("[NAME%2d] %.*s\n", count,  t[i].end-t[i].start, JSON_STR + t[i].start);
+			//printf("[NAME%2d] %.*s\n", count,  t[i].end-t[i].start, JSON_STR + t[i].start);
 			count++;
 			i++;
 		}
@@ -49,12 +49,12 @@ void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex)
 void printNameList(char *JSON_STR, jsmntok_t *t, int *nametokIndex){
 	printf("******* Name List *******\n");
 	int count = 1;
-	int i = 0;
 	int j;
-	for(j = 0; j < 100; j++){
-		printf("[NAME%2d] %.*s\n", count, t[nametokIndex[j]].end-t[nametokIndex[j]].start, JSON_STR + t[nametokIndex[j]].start);
+	for(j = 1; j <= 100; j++){
+		int a = nametokIndex[j];
+		if(a == 0) break;
+		printf("[NAME%2d] %.*s\n", count, t[a].end-t[a].start, JSON_STR + t[a].start);
 		count++;
-		i++;
 	}
 }
 
@@ -70,11 +70,9 @@ int main() {
 	int i;
 	int r;
 	char *JSON_STR;
-	int *nametokIndex;
+	int nametokIndex[100] = {0};
 	JSON_STR = readJSONFile();
 	//printf("%s", JSON_STR);
-
-	nametokIndex = malloc(sizeof(int)*100);
 
 	jsmn_parser p;
 	jsmntok_t t[128]; /* We expect no more than 128 tokens */
@@ -85,9 +83,10 @@ int main() {
 		printf("Failed to parse JSON: %d\n", r);
 		return 1;
 	}
-
-	//printNameList(JSON_STR, t, nametokIndex);
 	jsonNameList(JSON_STR, t, r, nametokIndex);
+	printNameList(JSON_STR, t, nametokIndex);
+
+
 	return 0;
 	/* Assume the top-level element is an object */
 	if (r < 1 || t[0].type != JSMN_OBJECT) {
