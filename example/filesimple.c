@@ -37,7 +37,7 @@ void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex)
 	int i;
 
 	for(i = 1; i < tokcount; i++) {
-		if(t[i].size >= 1){
+		if(t[i].size >= 1 && t[i].type == 3){
 			nametokIndex[count] = i;
 			//printf("[NAME%2d] %.*s\n", count,  t[i].end-t[i].start, JSON_STR + t[i].start);
 			count++;
