@@ -31,6 +31,14 @@ char *readJSONFile() {
 	return JSON_STRING;
 }
 
+static int jsoneq(const char *json, jsmntok_t *tok, jsmntok_t *tok1) {
+	if (tok->type == JSMN_STRING && (int) tok1->end - tok1->start == tok->end - tok->start &&
+			strncmp(json + tok->start, json + tok1->start, tok->end - tok->start) == 0) {
+		return 0;
+	}
+	return -1;
+}
+
 void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex) {
 	//printf("******* Name List *******\n");
 	int count = 1;
@@ -69,7 +77,7 @@ void selectNameList(char *JSON_STR, jsmntok_t *t, int *nametokIndex){
 			printf("%.*s\n", t[a+1].end-t[a+1].start, JSON_STR + t[a+1].start);
 	}
 }
-/*
+
 void objectnameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *objectCount, int *nametokIndex) {
 	int a = nametokIndex[1];
 
@@ -82,26 +90,19 @@ void objectnameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *objectCount
 		}
 	}
 }
-*/
+
 void objectprintList(char *JSON_STR, jsmntok_t *t, int *objectCount) {
-	printf("******* Object List *******\n");
 	int count = 1;
 	int a;
-	int i;
+	int i = 1;
+	printf("***** Object List *****\n");
 	for(;; i++){
 		a = objectCount[i];
 		if(a == 0) break;
-		printf("[NAME%2d] %.*s\n", count, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
+		printf("[NAME%2d] %.*s\n", count, t[a+1].end - t[a+1].start,
+																		JSON_STR + t[a+1].start);
 		count++;
 	}
-}
-
-static int jsoneq(const char *json, jsmntok_t *tok, jsmntok_t *tok1) {
-	if (tok->type == JSMN_STRING && (int) tok1->end - tok1->start == tok->end - tok->start &&
-			strncmp(json + tok->start, json + tok1->start, tok->end - tok->start) == 0) {
-		return 0;
-	}
-	return -1;
 }
 
 int main() {
@@ -123,9 +124,9 @@ int main() {
 		return 1;
 	}
 	jsonNameList(JSON_STR, t, r, nametokIndex);
-	//objectnameList(JSON_STR, t, r, objectCount, nametokIndex);
-	//objectprintList(JSMN_STR, t, objectCount, nametokIndex);
-	printNameList(JSON_STR, t, nametokIndex);
+	objectnameList(JSON_STR, t, r, objectCount, nametokIndex);
+	objectprintList(JSON_STR, t, objectCount);
+	//printNameList(JSON_STR, t, nametokIndex);
 	//selectNameList(JSON_STR, t, nametokIndex);
 
 	return 0;
