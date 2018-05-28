@@ -36,7 +36,7 @@ void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex)
 	int count = 1;
 	int i;
 
-	for(i = 1; i < tokcount; i++) {
+	for(i = 0; i < tokcount; i++) {
 		if(t[i].size >= 1 && t[i].type == 3){
 			nametokIndex[count] = i;
 			//printf("[NAME%2d] %.*s\n", count,  t[i].end-t[i].start, JSON_STR + t[i].start);
@@ -69,10 +69,36 @@ void selectNameList(char *JSON_STR, jsmntok_t *t, int *nametokIndex){
 			printf("%.*s\n", t[a+1].end-t[a+1].start, JSON_STR + t[a+1].start);
 	}
 }
+/*
+void objectnameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *objectCount, int *nametokIndex) {
+	int a = nametokIndex[1];
 
-static int jsoneq(const char *json, jsmntok_t *tok, const char *s) {
-	if (tok->type == JSMN_STRING && (int) strlen(s) == tok->end - tok->start &&
-			strncmp(json + tok->start, s, tok->end - tok->start) == 0) {
+	int count = 1;
+	int i;
+	for(i = 1; i < tokcount; i++){
+		if(jsoneq(JSON_STR, &t[i], &t[a]) == 0){
+			objectCount[count] = i;
+			i++; count++;
+		}
+	}
+}
+*/
+void objectprintList(char *JSON_STR, jsmntok_t *t, int *objectCount) {
+	printf("******* Object List *******\n");
+	int count = 1;
+	int a;
+	int i;
+	for(;; i++){
+		a = objectCount[i];
+		if(a == 0) break;
+		printf("[NAME%2d] %.*s\n", count, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
+		count++;
+	}
+}
+
+static int jsoneq(const char *json, jsmntok_t *tok, jsmntok_t *tok1) {
+	if (tok->type == JSMN_STRING && (int) tok1->end - tok1->start == tok->end - tok->start &&
+			strncmp(json + tok->start, json + tok1->start, tok->end - tok->start) == 0) {
 		return 0;
 	}
 	return -1;
@@ -82,6 +108,7 @@ int main() {
 	int i;
 	int r;
 	char *JSON_STR;
+	int objectCount[100] = {0};
 	int nametokIndex[100] = {0};
 	JSON_STR = readJSONFile();
 	//printf("%s", JSON_STR);
@@ -96,8 +123,10 @@ int main() {
 		return 1;
 	}
 	jsonNameList(JSON_STR, t, r, nametokIndex);
-	//printNameList(JSON_STR, t, nametokIndex);
-	selectNameList(JSON_STR, t, nametokIndex);
+	//objectnameList(JSON_STR, t, r, objectCount, nametokIndex);
+	//objectprintList(JSMN_STR, t, objectCount, nametokIndex);
+	printNameList(JSON_STR, t, nametokIndex);
+	//selectNameList(JSON_STR, t, nametokIndex);
 
 	return 0;
 	/* Assume the top-level element is an object */
@@ -106,20 +135,20 @@ int main() {
 		return 1;
 	}
 
-	/* Loop over all keys of the root object */
+	/* Loop over all keys of the root object
 	for (i = 1; i < r; i++) {
 		if (jsoneq(JSON_STR, &t[i], "name") == 0) {
-			/* We may use strndup() to fetch string value */
+			/* We may use strndup() to fetch string value
 			printf("- name: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STR + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STR, &t[i], "keywords") == 0) {
-			/* We may additionally check if the value is either "true" or "false" */
+			/* We may additionally check if the value is either "true" or "false"
 			printf("- keywords: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STR + t[i+1].start);
 			i++;
 		} else if (jsoneq(JSON_STR, &t[i], "description") == 0) {
-			/* We may want to do strtol() here to get numeric value */
+			/* We may want to do strtol() here to get numeric value
 			printf("- UID: %.*s\n", t[i+1].end-t[i+1].start,
 					JSON_STR + t[i+1].start);
 			i++;
@@ -127,7 +156,7 @@ int main() {
 			int j;
 			printf("- examples:\n");
 			if (t[i+1].type != JSMN_ARRAY) {
-				continue; /* We expect groups to be an array of strings */
+				continue; /* We expect groups to be an array of strings
 			}
 			for (j = 0; j < t[i+1].size; j++) {
 				jsmntok_t *g = &t[i+j+2];
@@ -137,7 +166,8 @@ int main() {
 		} /*else {
 			printf("Unexpected key: %.*s\n", t[i].end-t[i].start,
 					JSON_STR + t[i].start);
-		}*/
+		}
 	}
+	*/
 	return EXIT_SUCCESS;
 }
