@@ -105,6 +105,35 @@ void objectprintList(char *JSON_STR, jsmntok_t *t, int *objectCount) {
 	}
 }
 
+void printbyNum(char *JSON_STR, jsmntok_t *t, int *objectCount, int *nametokIndex){
+	int ans;
+	printf("원하는 번호를 입력 (Exit:0) : ");
+	if(ans == 0) return;
+	scanf("%d", &ans);
+	int a = objectCount[ans];
+	int b = objectCount[ans+1];
+	if(b != 0) {
+		printf("%.*s : %.*s\n", t[a].end - t[a].start, JSON_STR + t[a].start, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
+		for(int i = a+2 ; i < b-1; i+=2){
+			printf("\t[%.*s] %.*s\n", t[i].end - t[i].start, JSON_STR + t[i].start, t[i+1].end - t[i+1].start, JSON_STR + t[i+1].start);
+			if(t[i+1].type == JSMN_ARRAY)
+				i++;
+		}
+	}
+	else {
+		b = objectCount[ans-1];
+		int c = (a - b) / 2;
+		printf("%.*s : %.*s\n", t[a].end - t[a].start, JSON_STR + t[a].start, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
+		a += 2;
+		for(int i = 0; i < c - 2; i++){
+			printf("\t[%.*s] %.*s\n", t[a].end - t[a].start, JSON_STR + t[a].start, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
+			if(t[a+1].type == JSMN_ARRAY)
+				a++;
+			a+=2;
+		}
+	}
+}
+
 int main() {
 	int i;
 	int r;
@@ -126,6 +155,7 @@ int main() {
 	jsonNameList(JSON_STR, t, r, nametokIndex);
 	objectnameList(JSON_STR, t, r, objectCount, nametokIndex);
 	objectprintList(JSON_STR, t, objectCount);
+	printbyNum(JSON_STR, t, objectCount, nametokIndex);
 	//printNameList(JSON_STR, t, nametokIndex);
 	//selectNameList(JSON_STR, t, nametokIndex);
 
