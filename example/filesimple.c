@@ -3,6 +3,7 @@
 #include <string.h>
 #include "../jsmn.h"
 
+#define JSMN_PARENT_LINKS
 /*
  * A small example of jsmn parsing when JSON structure is known and number of
  * tokens is predictable.
@@ -13,7 +14,7 @@ static const char *JSON_STRING =
 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
 char *readJSONFile() {
-	FILE *fp = fopen("data.json", "r");
+	FILE *fp = fopen("data2.json", "r");
 	char *JSON_STRING;
 	JSON_STRING = malloc(sizeof(char)*50);
 	char line[255];
@@ -45,12 +46,19 @@ void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex)
 	int i;
 
 	for(i = 0; i < tokcount; i++) {
-		if(t[i].size >= 1 && t[i].type == 3){
+		if(t[i].size >= 1 && t[i].type == JSMN_STRING) {
 			nametokIndex[count] = i;
-			//printf("[NAME%2d] %.*s\n", count,  t[i].end-t[i].start, JSON_STR + t[i].start);
 			count++;
-			i++;
+			break;
 		}
+	}
+	int a = nametokIndex[1];
+	for(i = a + 1; i < tokcount; i++){
+			if(t[i].parent == t[a].parent && t[i].size >= 1){
+				nametokIndex[count] = i;
+				count++;
+				i++;
+			}
 	}
 }
 
@@ -84,7 +92,7 @@ void objectnameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *objectCount
 	int count = 1;
 	int i;
 	for(i = 1; i < tokcount; i++){
-		if(jsoneq(JSON_STR, &t[i], &t[a]) == 0){
+		if(t[a].parent == t[i].parent && jsoneq(JSON_STR, &t[i], &t[a]) == 0){
 			objectCount[count] = i;
 			i++; count++;
 		}
@@ -95,7 +103,7 @@ void objectprintList(char *JSON_STR, jsmntok_t *t, int *objectCount) {
 	int count = 1;
 	int a;
 	int i = 1;
-	printf("***** Object List *****\n");
+	printf("******* Object List *******\n");
 	for(;; i++){
 		a = objectCount[i];
 		if(a == 0) break;
@@ -110,22 +118,26 @@ void printbyNum(char *JSON_STR, jsmntok_t *t, int *objectCount, int *nametokInde
 	printf("원하는 번호를 입력 (Exit:0) : ");
 	if(ans == 0) return;
 	scanf("%d", &ans);
-	int a = objectCount[ans];
-	int b = objectCount[ans+1];
-	if(b != 0) {
+	int a = nametokIndex[ans];
+	if( a == 0 ){
+		printf("Undefined number\n");
+		return;
+	}
+	int b = nametokIndex[ans+1];
+	if(b != 0 ) {
 		printf("%.*s : %.*s\n", t[a].end - t[a].start, JSON_STR + t[a].start, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
-		for(int i = a+2 ; i < b-1; i+=2){
+		for(int i = a+2 ; i < b /2; i+=2){
 			printf("\t[%.*s] %.*s\n", t[i].end - t[i].start, JSON_STR + t[i].start, t[i+1].end - t[i+1].start, JSON_STR + t[i+1].start);
 			if(t[i+1].type == JSMN_ARRAY)
 				i++;
 		}
 	}
 	else {
-		b = objectCount[ans-1];
-		int c = (a - b) / 2;
+		b = nametokIndex[ans-1];
+		int c = (a - b) / 2 - 2;
 		printf("%.*s : %.*s\n", t[a].end - t[a].start, JSON_STR + t[a].start, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
 		a += 2;
-		for(int i = 0; i < c - 2; i++){
+		for(int i = 0; i < c; i++){
 			printf("\t[%.*s] %.*s\n", t[a].end - t[a].start, JSON_STR + t[a].start, t[a+1].end - t[a+1].start, JSON_STR + t[a+1].start);
 			if(t[a+1].type == JSMN_ARRAY)
 				a++;
@@ -153,10 +165,10 @@ int main() {
 		return 1;
 	}
 	jsonNameList(JSON_STR, t, r, nametokIndex);
+	printNameList(JSON_STR, t, nametokIndex);
 	objectnameList(JSON_STR, t, r, objectCount, nametokIndex);
 	objectprintList(JSON_STR, t, objectCount);
 	printbyNum(JSON_STR, t, objectCount, nametokIndex);
-	//printNameList(JSON_STR, t, nametokIndex);
 	//selectNameList(JSON_STR, t, nametokIndex);
 
 	return 0;
