@@ -14,7 +14,7 @@ static const char *JSON_STRING =
 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
 char *readJSONFile() {
-	FILE *fp = fopen("data2.json", "r");
+	FILE *fp = fopen("data3.json", "r");
 	char *JSON_STRING;
 	JSON_STRING = malloc(sizeof(char)*50);
 	char line[255];
@@ -44,21 +44,31 @@ void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex)
 	//printf("******* Name List *******\n");
 	int count = 1;
 	int i;
-
-	for(i = 0; i < tokcount; i++) {
-		if(t[i].size >= 1 && t[i].type == JSMN_STRING) {
-			nametokIndex[count] = i;
-			count++;
-			break;
-		}
+	if(t[0].type == JSMN_ARRAY){ //array로 시작할 때. Object가 여러개일 때.
+			for(i = 0; i < tokcount; i++) {
+				if(t[i].size >= 1 && t[i].type == JSMN_STRING && t[t[i].parent].type == JSMN_OBJECT) {
+					nametokIndex[count] = i;
+					count++;
+				}
+			}
 	}
-	int a = nametokIndex[1];
-	for(i = a + 1; i < tokcount; i++){
-			if(t[i].parent == t[a].parent && t[i].size >= 1){
+	else{ // 시작이 array가 아닌 object일 때.
+		for(i = 0; i < tokcount; i++) {
+			if(t[i].size >= 1 && t[i].type == JSMN_STRING) {
 				nametokIndex[count] = i;
 				count++;
-				i++;
+				break;
 			}
+
+		}
+		int a = nametokIndex[1];
+		for(i = a + 1; i < tokcount; i++){
+				if(t[i].parent == t[a].parent && t[i].size >= 1){
+					nametokIndex[count] = i;
+					count++;
+					i++;
+				}
+		}
 	}
 }
 
@@ -66,9 +76,16 @@ void printNameList(char *JSON_STR, jsmntok_t *t, int *nametokIndex){
 	printf("******* Name List *******\n");
 	int count = 1;
 	int j;
+	//int countObject = 0;
 	for(j = 1; j <= 100; j++){
+	//for(int a  = 0; a <= 100; a++){   //실험용 돌리
 		int a = nametokIndex[j];
 		if(a == 0) break;
+		//if(t[a].type == JSMN_OBJECT)
+	//		countObject++;
+	//	if(JSON_STR[t[a].end +1] == '}')
+		//countObject--;
+		//printf("%d, %d, %d   [NAME%2d] %.*s\n",t[a].type, t[a].parent, countObject, count, t[a].end-t[a].start, JSON_STR + t[a].start);
 		printf("[NAME%2d] %.*s\n", count, t[a].end-t[a].start, JSON_STR + t[a].start);
 		count++;
 	}
@@ -87,14 +104,21 @@ void selectNameList(char *JSON_STR, jsmntok_t *t, int *nametokIndex){
 }
 
 void objectnameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *objectCount, int *nametokIndex) {
-	int a = nametokIndex[1];
-
+	int a = nametokIndex[1]; //첫 name
 	int count = 1;
 	int i;
 	for(i = 1; i < tokcount; i++){
-		if(t[a].parent == t[i].parent && jsoneq(JSON_STR, &t[i], &t[a]) == 0){
-			objectCount[count] = i;
-			i++; count++;
+		if(t[0].type == JSMN_ARRAY){
+			if(t[t[a].parent].parent == t[t[i].parent].parent && jsoneq(JSON_STR, &t[i], &t[a]) == 0){
+				objectCount[count] = i;
+				i++; count++;
+			}
+		}
+		else{
+			if(t[a].parent == t[i].parent && jsoneq(JSON_STR, &t[i], &t[a]) == 0){
+				objectCount[count] = i;
+				i++; count++;
+			}
 		}
 	}
 }
