@@ -14,7 +14,10 @@ static const char *JSON_STRING =
 	"\"groups\": [\"users\", \"wheel\", \"audio\", \"video\"]}";
 
 char *readJSONFile() {
-	FILE *fp = fopen("data3.json", "r");
+	char c[15];
+	printf("원하는 파일명 입력 : ");
+	scanf("%s", &c);
+	FILE *fp = fopen(c, "r");
 	char *JSON_STRING;
 	JSON_STRING = malloc(sizeof(char)*50);
 	char line[255];
@@ -53,7 +56,18 @@ void jsonNameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *nametokIndex)
 			}
 	}
 	else{ // 시작이 array가 아닌 object일 때.
-		for(i = 0; i < tokcount; i++) {
+		i = 0;
+		if(t[1].type == JSMN_STRING && t[2].type != JSMN_STRING){
+			i = 3;
+			for(i; i < tokcount; i++) {
+				if(t[i].size >= 1 && t[i].type == JSMN_STRING && t[t[i].parent].type == JSMN_OBJECT) {
+					nametokIndex[count] = i;
+					count++;
+				}
+			}
+			return;
+		}
+		for(i; i < tokcount; i++) {
 			if(t[i].size >= 1 && t[i].type == JSMN_STRING) {
 				nametokIndex[count] = i;
 				count++;
@@ -108,7 +122,7 @@ void objectnameList(char *JSON_STR, jsmntok_t *t, int tokcount, int *objectCount
 	int count = 1;
 	int i;
 	for(i = 1; i < tokcount; i++){
-		if(t[0].type == JSMN_ARRAY){
+		if(t[0].type == JSMN_ARRAY || t[1].type == JSMN_STRING && t[2].type != JSMN_STRING){
 			if(t[t[a].parent].parent == t[t[i].parent].parent && jsoneq(JSON_STR, &t[i], &t[a]) == 0){
 				objectCount[count] = i;
 				i++; count++;
